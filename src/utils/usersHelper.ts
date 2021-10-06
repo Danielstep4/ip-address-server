@@ -23,4 +23,8 @@ export const setUser = (ip: string) => {
 };
 
 /** Incrementing request in json file. */
-export const incrementUser = (ip: string) => {};
+export const incrementUser = (ip: string) => {
+  const users = getUsers();
+  users[ip]++;
+  fs.writeFileSync(USERS_DB_PATH, JSON.stringify(users));
+};
