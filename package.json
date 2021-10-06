@@ -20,13 +20,19 @@
   },
   "homepage": "https://github.com/Danielstep4/ip-address-server#readme",
   "dependencies": {
+    "axios": "^0.22.0",
+    "cookie-parser": "^1.4.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
+    "express-session": "^1.17.2",
+    "helmet": "^4.6.0",
     "jsonwebtoken": "^8.5.1",
     "redis": "^3.1.2"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.2",
     "@types/express": "^4.17.13",
+    "@types/express-session": "^1.17.4",
     "@types/jsonwebtoken": "^8.5.5",
     "@types/redis": "^2.8.32",
     "nodemon": "^2.0.13",
