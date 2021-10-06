@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { withToken } from "./middleware/withToken";
 import { withUserIp } from "./middleware/withUserIp";
+import { incrementUser } from "./utils/usersHelper";
 
 // Dotenv config init
 dotenv.config();
@@ -45,14 +46,17 @@ app.get("/getToken", withUserIp, (req, res) => {
 });
 // #TODO - IP Address.
 // getInfo Route
-app.post("/getInfo", withToken, async (req, res) => {
+app.post("/getInfo", withUserIp, withToken, async (req, res) => {
   const { ipAddress } = req.body as { token: string; ipAddress?: string };
   if (!ipAddress) res.status(404).send("IP Address is not found");
   try {
-    const result = await axios.get(process.env.GEO_URL + ipAddress);
-    if (result && result.data) {
-      res.status(200).json(result.data);
-    } else res.sendStatus(404);
+    const requestsCount = incrementUser(req.ip);
+    if (requestsCount < 21) {
+      const result = await axios.get(process.env.GEO_URL + ipAddress);
+      if (result && result.data) {
+        res.status(200).json(result.data);
+      } else res.sendStatus(404);
+    } else res.status(401).json({ error: "limit exceeded. (20 requests)" });
   } catch (e) {
     res.sendStatus(500);
     console.log(e);
