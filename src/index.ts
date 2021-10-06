@@ -5,16 +5,14 @@ import helmet from "helmet";
 import axios from "axios";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import fs from "node:fs";
-import path from "node:path";
-
 import { withToken } from "./middleware/withToken";
+import { withUserIp } from "./middleware/withUserIp";
 
 // Dotenv config init
 dotenv.config();
 // Express init
 const app = express();
-
+// Global Middlewares
 app.use(express.json());
 app.use(cookieParser());
 app.use(helmet());
@@ -27,20 +25,9 @@ app.use(
     cookie: { secure: true },
   })
 );
-const USERS_DB_PATH = path.join(__dirname, "/db/users.json");
-
-app.get("/getToken", (req, res) => {
-  let ip = req.socket.remoteAddress.replace(/::ffff:\b/, "");
-  const cached = fs.readFileSync(USERS_DB_PATH).toString();
-  const db = cached ? JSON.parse(cached) : {};
-  if (!db[ip]) {
-    fs.writeFileSync(
-      USERS_DB_PATH,
-      JSON.stringify({
-        [ip]: 0,
-      })
-    );
-  }
+// getToken Route
+app.get("/getToken", withUserIp, (req, res) => {
+  const { ip } = req;
   const token = jwt.sign(
     {
       data: ip,
@@ -56,7 +43,8 @@ app.get("/getToken", (req, res) => {
     })
     .end();
 });
-
+// #TODO - IP Address.
+// getInfo Route
 app.post("/getInfo", withToken, async (req, res) => {
   const { ipAddress } = req.body as { token: string; ipAddress?: string };
   if (!ipAddress) res.status(404).send("IP Address is not found");
@@ -70,8 +58,9 @@ app.post("/getInfo", withToken, async (req, res) => {
     console.log(e);
   }
 });
+// PORT
+const PORT = process.env.PORT || 8080;
 
-const port = process.env.PORT || 1000;
-app.listen(port, () => {
-  console.log(`server started at port: ${port}`);
+app.listen(PORT, () => {
+  console.log(`server started at port: ${PORT}`);
 });
