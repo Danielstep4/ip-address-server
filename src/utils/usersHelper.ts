@@ -25,7 +25,13 @@ export const setUser = (ip: string) => {
 /** Incrementing request in json file. */
 export const incrementUser = (ip: string) => {
   const users = getUsers();
-  const counter = users[ip]++;
+  const counter = users.ip++;
   fs.writeFileSync(USERS_DB_PATH, JSON.stringify(users));
   return counter;
+};
+
+export const removeUser = (ip: string) => {
+  const users = getUsers();
+  Reflect.deleteProperty(users, ip);
+  fs.writeFileSync(USERS_DB_PATH, JSON.stringify(users));
 };
