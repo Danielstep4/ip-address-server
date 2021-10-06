@@ -28,7 +28,7 @@ app.use(
 );
 // getToken Route
 app.get("/getToken", withUserIp, (req, res) => {
-  const { ip } = req;
+  const { ip } = req.body;
   const token = jwt.sign(
     {
       data: ip,
@@ -36,30 +36,29 @@ app.get("/getToken", withUserIp, (req, res) => {
     },
     process.env.GET_TOKEN_SECRET
   );
-  res
-    .status(200)
-    .cookie("token", token, {
-      expires: new Date(Date.now() + 2629746000),
-      httpOnly: true,
-    })
-    .end();
+  return res.status(200).cookie("token", token, {
+    expires: new Date(Date.now() + 2629746000),
+    httpOnly: true,
+  });
 });
 // #TODO - IP Address.
 // getInfo Route
 app.post("/getInfo", withUserIp, withToken, async (req, res) => {
   const { ipAddress } = req.body as { token: string; ipAddress?: string };
-  if (!ipAddress) res.status(404).send("IP Address is not found");
+  if (!ipAddress) return res.status(404).send("IP Address is not found");
   try {
-    const requestsCount = incrementUser(req.ip);
+    const requestsCount = incrementUser(req.body.ip);
     if (requestsCount < 21) {
-      const result = await axios.get(process.env.GEO_URL + ipAddress);
+      const result = { data: 0 };
+      // const result = await axios.get(process.env.GEO_URL + ipAddress);
       if (result && result.data) {
-        res.status(200).json(result.data);
-      } else res.sendStatus(404);
-    } else res.status(401).json({ error: "limit exceeded. (20 requests)" });
+        return res.status(200).json(result.data);
+      } else return res.sendStatus(404);
+    } else
+      return res.status(401).json({ error: "limit exceeded. (20 requests)" });
   } catch (e) {
-    res.sendStatus(500);
     console.log(e);
+    return res.sendStatus(500);
   }
 });
 // PORT

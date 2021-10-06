@@ -10,15 +10,15 @@ export const withToken = (
   res: express.Response,
   next: express.NextFunction
 ) => {
-  const { token } = req.body as { token?: string };
+  const { token } = req.cookies as { token?: string };
   if (token) {
     try {
       const payload = jwt.verify(token, process.env.GET_TOKEN_SECRET);
-      if (!payload) res.sendStatus(403);
+      if (!payload) return res.sendStatus(403);
     } catch (e) {
       console.error(e);
-      res.status(403).json({ error: "Invalid Token" });
+      return res.status(403).json({ error: "Invalid Token" });
     }
-  } else res.sendStatus(401);
+  } else return res.sendStatus(401);
   next();
 };

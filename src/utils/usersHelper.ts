@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const USERS_DB_PATH = path.join(__dirname, "/db/users.json");
+const USERS_DB_PATH = path.join(__dirname, "../", "/db/users.json");
 
 /** Getting all the users from json file. */
 export const getUsers = () => {
@@ -25,7 +25,7 @@ export const setUser = (ip: string) => {
 /** Incrementing request in json file. */
 export const incrementUser = (ip: string) => {
   const users = getUsers();
-  const counter = users.ip++;
+  const counter = users[ip]++;
   fs.writeFileSync(USERS_DB_PATH, JSON.stringify(users));
   return counter;
 };

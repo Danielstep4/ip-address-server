@@ -14,10 +14,10 @@ export const withUserIp = (
   const ip = parseIp(req);
   if (!ip) {
     console.log("User Without IP.");
-    res.status(500).send("Server Error!");
+    return res.status(500).send("Server Error!");
   }
   const users = getUsers();
   if (!users[ip]) setUser(ip);
-  req.ip = ip;
+  req.body.ip = ip;
   next();
 };
