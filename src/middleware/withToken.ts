@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import express from "express";
 import dotenv from "dotenv";
+import { removeUser } from "../utils/usersHelper";
+import { parseIp } from "../utils/ipHelper";
 
 dotenv.config();
 
@@ -12,13 +14,18 @@ export const withToken = (
 ) => {
   const { token } = req.cookies as { token?: string };
   if (token) {
-    try {
-      const payload = jwt.verify(token, process.env.GET_TOKEN_SECRET);
-      if (!payload) return res.sendStatus(403);
-    } catch (e) {
-      console.error(e);
-      return res.status(403).json({ error: "Invalid Token" });
-    }
+    let payload;
+    jwt.verify(token, process.env.GET_TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        if (err.name === "TokenExpiredError") {
+          removeUser(parseIp(req));
+          return res.redirect("/getToken");
+        }
+        console.error(err);
+        return res.status(403).json({ error: "Invalid Token" });
+      } else payload = decoded;
+    });
+    if (!payload) return res.sendStatus(403);
   } else return res.sendStatus(401);
   next();
 };
