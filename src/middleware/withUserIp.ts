@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import { parseIp } from "../utils/ipHelper";
+import { parseIp } from "../utils/ipsHelper";
 import { getUsers, setUser } from "../utils/usersHelper";
 
 dotenv.config();
