@@ -12,7 +12,7 @@ export const withToken = (
   res: express.Response,
   next: express.NextFunction
 ) => {
-  const { token } = req.cookies as { token?: string };
+  const { token } = req.body as { token?: string };
   if (token) {
     let payload;
     jwt.verify(token, process.env.GET_TOKEN_SECRET, (err, decoded) => {

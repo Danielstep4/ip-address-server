@@ -1,9 +1,9 @@
 import express from "express";
 import session from "express-session";
-import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import axios from "axios";
 import jwt from "jsonwebtoken";
+import cors from "cors";
 import dotenv from "dotenv";
 import { withToken } from "./middleware/withToken";
 import { withUserIp } from "./middleware/withUserIp";
@@ -15,8 +15,8 @@ dotenv.config();
 const app = express();
 // Global Middlewares
 app.use(express.json());
-app.use(cookieParser());
 app.use(helmet());
+app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
@@ -36,13 +36,7 @@ app.get("/getToken", withUserIp, (req, res) => {
     },
     process.env.GET_TOKEN_SECRET
   );
-  return res
-    .status(200)
-    .cookie("token", token, {
-      expires: new Date(Date.now() + 2629746000),
-      httpOnly: true,
-    })
-    .end();
+  return res.status(200).json({ token });
 });
 // getInfo Route
 app.post("/getInfo", withUserIp, withToken, async (req, res) => {
@@ -51,7 +45,9 @@ app.post("/getInfo", withUserIp, withToken, async (req, res) => {
   try {
     const requestsCount = incrementUser(req.body.ip);
     if (requestsCount < 21) {
+      console.log("im here");
       const result = await axios.get(process.env.GEO_URL + ipAddress);
+      console.log(result);
       if (result && result.data) {
         return res.status(200).json(result.data);
       } else return res.sendStatus(404);
