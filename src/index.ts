@@ -44,13 +44,14 @@ app.post("/getInfo", withUserIp, withToken, async (req, res) => {
   const { ipAddress } = req.body as { token: string; ipAddress?: string };
   if (!ipAddress) return res.status(404).send("IP Address is not found");
   try {
-    const data = extractCachedIp(ipAddress);
+    const fixedIpAddress = ipAddress.replace(/\b0/g, "");
+    const data = extractCachedIp(fixedIpAddress);
     if (data !== null) return res.status(200).json(data);
     const requestsCount = incrementUser(req.body.ip);
     if (requestsCount < 21) {
-      const result = await axios.get(process.env.GEO_URL + ipAddress);
+      const result = await axios.get(process.env.GEO_URL + fixedIpAddress);
       if (result && result.data) {
-        cacheIp(ipAddress, result.data);
+        cacheIp(fixedIpAddress, result.data);
         return res.status(200).json(result.data);
       } else return res.sendStatus(404);
     } else
