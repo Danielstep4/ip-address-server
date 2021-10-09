@@ -7,8 +7,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { withToken } from "./middleware/withToken";
 import { withUserIp } from "./middleware/withUserIp";
-import { incrementUser } from "./utils/usersHelper";
-import { cacheIp, extractCachedIp } from "./utils/ipsHelper";
+import { createUserDataBase, incrementUser } from "./utils/usersHelper";
+import { cacheIp, createIpDataBase, extractCachedIp } from "./utils/ipsHelper";
 
 // Dotenv config init
 dotenv.config();
@@ -65,5 +65,7 @@ app.post("/getInfo", withUserIp, withToken, async (req, res) => {
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
+  createIpDataBase();
+  createUserDataBase();
   console.log(`server started at port: ${PORT}`);
 });

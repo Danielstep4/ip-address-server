@@ -33,3 +33,12 @@ export const removeUser = (ip: string) => {
   Reflect.deleteProperty(users, ip);
   fs.writeFileSync(USERS_DB_PATH, JSON.stringify(users));
 };
+
+export const createUserDataBase = () => {
+  try {
+    if (fs.existsSync(USERS_DB_PATH)) return;
+    return fs.appendFileSync(USERS_DB_PATH, "");
+  } catch (e) {
+    console.log(e);
+  }
+};

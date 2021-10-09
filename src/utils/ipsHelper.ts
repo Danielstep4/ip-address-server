@@ -39,3 +39,12 @@ export const extractCachedIp = (ip: string) => {
   const ips = getAllIps();
   return ips[ip] || null;
 };
+
+export const createIpDataBase = () => {
+  try {
+    if (fs.existsSync(IPS_DB_PATH)) return;
+    return fs.appendFileSync(IPS_DB_PATH, "");
+  } catch (e) {
+    console.log(e);
+  }
+};
