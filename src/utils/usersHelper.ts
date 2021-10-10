@@ -1,43 +1,43 @@
-import fs from "node:fs";
-import path from "node:path";
-
-const USERS_DB_PATH = path.join(__dirname, "../", "/db/users.json");
+import { User } from "../db/users";
 
 /** Getting all the users from json file. */
-export const getUsers = () => {
-  const users = fs.readFileSync(USERS_DB_PATH).toString();
-  const db = users ? (JSON.parse(users) as { [key: string]: number }) : {};
-  return db;
+export const getUsers = async () => {
+  try {
+    const users = await User.find();
+    return users;
+  } catch (e) {
+    console.error("User DB Fail ", e);
+  }
 };
 /** Setting new user in the json file. */
-export const setUser = (ip: string) => {
-  const users = getUsers();
-  fs.writeFileSync(
-    USERS_DB_PATH,
-    JSON.stringify({
-      ...users,
-      [ip]: 0,
-    })
-  );
+export const setUser = async (ip: string) => {
+  const newUser = new User({
+    ip,
+  });
+  try {
+    const user = await User.findOne({ ip }).exec();
+    if (user) return;
+    await newUser.save();
+  } catch (e) {
+    console.error(e);
+  }
 };
 /** Incrementing request in json file. */
-export const incrementUser = (ip: string) => {
-  const users = getUsers();
-  const counter = users[ip]++;
-  fs.writeFileSync(USERS_DB_PATH, JSON.stringify(users));
-  return counter;
+export const incrementUser = async (ip: string): Promise<number> => {
+  try {
+    const user = await User.findOne({ ip }).exec();
+    user.requests++;
+    await user.save();
+    return user.requests;
+  } catch (e) {
+    console.log(e);
+  }
 };
 /** Removing user from json file. */
-export const removeUser = (ip: string) => {
-  const users = getUsers();
-  Reflect.deleteProperty(users, ip);
-  fs.writeFileSync(USERS_DB_PATH, JSON.stringify(users));
-};
-
-export const createUserDataBase = () => {
+export const removeUser = async (ip: string) => {
   try {
-    if (fs.existsSync(USERS_DB_PATH)) return;
-    return fs.appendFileSync(USERS_DB_PATH, "");
+    await User.findByIdAndDelete({ ip }).exec();
+    console.log(ip, " deleted.");
   } catch (e) {
     console.log(e);
   }

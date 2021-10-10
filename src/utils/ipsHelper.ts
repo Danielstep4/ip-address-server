@@ -1,8 +1,5 @@
 import express from "express";
-import fs from "node:fs";
-import path from "node:path";
-
-const IPS_DB_PATH = path.join(__dirname, "../", "/db/cachedips.json");
+import { CachedData } from "../db/cachedData";
 
 /** Parsing ip from the request. */
 export const parseIp = (req: express.Request): string => {
@@ -18,32 +15,28 @@ export const parseIp = (req: express.Request): string => {
   return ip.replace(/::ffff:\b/, "");
 };
 /** Gets all save ip and data */
-const getAllIps = () => {
-  const ips = fs.readFileSync(IPS_DB_PATH).toString();
-  const db = ips ? JSON.parse(ips) : {};
-  return db;
+export const getAllIps = async () => {
+  try {
+    const data = await CachedData.find();
+    return data;
+  } catch (e) {
+    console.log(e);
+  }
 };
 /** Saves ip */
-export const cacheIp = (ip: string, data: any) => {
-  const ips = getAllIps();
-  fs.writeFileSync(
-    IPS_DB_PATH,
-    JSON.stringify({
-      ...ips,
-      [ip]: data,
-    })
-  );
+export const cacheIp = async (ip: string, data: any) => {
+  const newCachedIp = new CachedData({ ip, data });
+  try {
+    await newCachedIp.save();
+  } catch (e) {
+    console.log(e);
+  }
 };
 /**Returns ip data or null */
-export const extractCachedIp = (ip: string) => {
-  const ips = getAllIps();
-  return ips[ip] || null;
-};
-
-export const createIpDataBase = () => {
+export const extractCachedIp = async (ip: string) => {
   try {
-    if (fs.existsSync(IPS_DB_PATH)) return;
-    return fs.appendFileSync(IPS_DB_PATH, "");
+    const cachedIp = await CachedData.findOne({ ip }).exec();
+    return cachedIp;
   } catch (e) {
     console.log(e);
   }

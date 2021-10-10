@@ -1,12 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
 import { parseIp } from "../utils/ipsHelper";
-import { getUsers, setUser } from "../utils/usersHelper";
+import { setUser } from "../utils/usersHelper";
 
 dotenv.config();
 
 /** Checking user ip, and saving in json file. */
-export const withUserIp = (
+export const withUserIp = async (
   req: express.Request,
   res: express.Response,
   next: express.NextFunction
@@ -16,8 +16,12 @@ export const withUserIp = (
     console.log("User Without IP.");
     return res.status(500).send("Server Error!");
   }
-  const users = getUsers();
-  if (!users[ip]) setUser(ip);
-  req.body.ip = ip;
-  next();
+  try {
+    setUser(ip);
+    req.body.ip = ip;
+    next();
+  } catch (e) {
+    console.log(e);
+    return res.status(500).send("Server Error!");
+  }
 };

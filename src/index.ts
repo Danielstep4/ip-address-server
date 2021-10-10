@@ -1,5 +1,6 @@
 import express from "express";
-import session from "express-session";
+import mongoose from "mongoose";
+import "mongodb";
 import helmet from "helmet";
 import axios from "axios";
 import jwt from "jsonwebtoken";
@@ -7,26 +8,23 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { withToken } from "./middleware/withToken";
 import { withUserIp } from "./middleware/withUserIp";
-import { createUserDataBase, incrementUser } from "./utils/usersHelper";
-import { cacheIp, createIpDataBase, extractCachedIp } from "./utils/ipsHelper";
+import { incrementUser } from "./utils/usersHelper";
+import { cacheIp, extractCachedIp } from "./utils/ipsHelper";
 
 // Dotenv config init
 dotenv.config();
 // Express init
 const app = express();
+// Connect to mongodb
+const db = mongoose.connection;
+db.once("open", () => {
+  console.log("We're Connected to DB!");
+});
 // Global Middlewares
 app.use(express.json());
 app.use(helmet());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  session({
-    secret: process.env.SECRET_KEY,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: true },
-  })
-);
 // getToken Route
 app.get("/getToken", withUserIp, (req, res) => {
   const { ip } = req.body;
@@ -47,7 +45,7 @@ app.post("/getInfo", withUserIp, withToken, async (req, res) => {
     const fixedIpAddress = ipAddress.replace(/\b0/g, "");
     const data = extractCachedIp(fixedIpAddress);
     if (data !== null) return res.status(200).json(data);
-    const requestsCount = incrementUser(req.body.ip);
+    const requestsCount = await incrementUser(req.body.ip);
     if (requestsCount < 21) {
       const result = await axios.get(process.env.GEO_URL + fixedIpAddress);
       if (result && result.data) {
@@ -64,8 +62,12 @@ app.post("/getInfo", withUserIp, withToken, async (req, res) => {
 // PORT
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
-  createIpDataBase();
-  createUserDataBase();
+app.listen(PORT, async () => {
+  try {
+    await mongoose.connect(process.env.DB_URL);
+  } catch (e) {
+    console.log(e);
+  }
+
   console.log(`server started at port: ${PORT}`);
 });
