@@ -27,7 +27,8 @@ export const getAllIps = async () => {
 export const cacheIp = async (ip: string, data: any) => {
   const newCachedIp = new CachedData({ ip, data });
   try {
-    const data = CachedData.findOne({ ip }).exec();
+    const data = await CachedData.findOne({ ip }).exec();
+    console.log(data);
     if (data) return;
     await newCachedIp.save();
   } catch (e) {
