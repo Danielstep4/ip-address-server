@@ -35,7 +35,7 @@ app.get("/getToken", withUserIp, (req, res) => {
     },
     process.env.GET_TOKEN_SECRET
   );
-  return res.status(200).json({ token });
+  return res.status(200).json({ token, ip });
 });
 // getInfo Route
 app.post("/getInfo", withUserIp, withToken, async (req, res) => {
