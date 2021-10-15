@@ -31,16 +31,21 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 // getToken Route
 app.get("/getToken", withUserIp, async (req, res) => {
-  const { ip, token } = req.body;
-  if (!token) {
-    const cachedToken = await getUserToken(ip);
-    if (cachedToken) return res.status(200).json({ token: cachedToken, ip });
-    else {
-      const newToken = await setUserNewToken(ip);
-      return res.status(200).json({ token: newToken, ip });
+  try {
+    const { ip, token } = req.body;
+    if (!token) {
+      const cachedToken = await getUserToken(ip);
+      if (cachedToken) return res.status(200).json({ token: cachedToken, ip });
+      else {
+        const newToken = await setUserNewToken(ip);
+        return res.status(200).json({ token: newToken, ip });
+      }
     }
+    return res.status(200).json({ token, ip });
+  } catch (e) {
+    console.log(e);
+    return res.sendStatus(500);
   }
-  return res.status(200).json({ token, ip });
 });
 // getInfo Route
 app.post("/getInfo", withUserIp, withToken, async (req, res) => {

@@ -51,8 +51,9 @@ export const incrementUser = async (ip: string): Promise<number> => {
     console.error("DB Error: ", e);
   }
 };
-/** Setting new token to user if user exists and returning token
- * if user do not exists creating new and returning token
+/** Setting new token, and reseting requests counter if user exists
+ * if user do not exists creating new user
+ * @return token
  */
 export const setUserNewToken = async (ip: string) => {
   try {
@@ -60,6 +61,7 @@ export const setUserNewToken = async (ip: string) => {
     if (user) {
       const token = generateToken(ip);
       user.token = token;
+      user.requests = 0;
       await user.save();
       console.log("Added new Token to ", user);
       return token;
