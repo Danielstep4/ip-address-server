@@ -17,7 +17,8 @@ export const withUserIp = async (
     return res.status(500).send("Server Error!");
   }
   try {
-    await setUser(ip);
+    const token = await setUser(ip);
+    if (token) req.body.token = token;
     req.body.ip = ip;
     next();
   } catch (e) {

@@ -3,6 +3,7 @@ import mongoose, { Document, Model } from "mongoose";
 const UserSchema = new mongoose.Schema<UserDocument, UserModel>({
   ip: { type: String, required: true },
   requests: { type: Number, default: 0 },
+  token: { type: String, requied: true },
   created_on: { type: Date, default: Date.now },
 });
 export let User = mongoose.connections[0].readyState
@@ -13,6 +14,7 @@ export let User = mongoose.connections[0].readyState
 type User = {
   ip: string;
   requests: number;
+  token: string;
   created_on?: Date | number;
 };
 

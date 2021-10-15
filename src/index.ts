@@ -3,12 +3,16 @@ import mongoose from "mongoose";
 import "mongodb";
 import helmet from "helmet";
 import axios from "axios";
-import jwt from "jsonwebtoken";
 import cors from "cors";
 import dotenv from "dotenv";
 import { withToken } from "./middleware/withToken";
 import { withUserIp } from "./middleware/withUserIp";
-import { incrementUser } from "./utils/usersHelper";
+import {
+  getUserToken,
+  incrementUser,
+  removeUser,
+  setUserNewToken,
+} from "./utils/usersHelper";
 import { cacheIp, extractCachedIp } from "./utils/ipsHelper";
 
 // Dotenv config init
@@ -26,15 +30,16 @@ app.use(helmet());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 // getToken Route
-app.get("/getToken", withUserIp, (req, res) => {
-  const { ip } = req.body;
-  const token = jwt.sign(
-    {
-      data: ip,
-      exp: Date.now() + 2629746000,
-    },
-    process.env.GET_TOKEN_SECRET
-  );
+app.get("/getToken", withUserIp, async (req, res) => {
+  const { ip, token } = req.body;
+  if (!token) {
+    const cachedToken = await getUserToken(ip);
+    if (cachedToken) return res.status(200).json({ token: cachedToken, ip });
+    else {
+      const newToken = await setUserNewToken(ip);
+      return res.status(200).json({ token: newToken, ip });
+    }
+  }
   return res.status(200).json({ token, ip });
 });
 // getInfo Route

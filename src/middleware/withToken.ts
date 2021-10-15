@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import express from "express";
 import dotenv from "dotenv";
-import { removeUser } from "../utils/usersHelper";
+import { removeUser, setUserNewToken } from "../utils/usersHelper";
 import { parseIp } from "../utils/ipsHelper";
 
 dotenv.config();
@@ -15,11 +15,12 @@ export const withToken = (
   const { token } = req.body as { token?: string };
   if (token) {
     let payload;
-    jwt.verify(token, process.env.GET_TOKEN_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.GET_TOKEN_SECRET, async (err, decoded) => {
       if (err) {
         if (err.name === "TokenExpiredError") {
-          removeUser(parseIp(req));
-          return res.redirect("/getToken");
+          const newToken = await setUserNewToken(parseIp(req));
+          if (newToken) payload = jwt.decode(newToken);
+          else return res.status(500).json({ error: "Server Error!" });
         }
         console.error(err);
         return res.status(403).json({ error: "Invalid Token" });

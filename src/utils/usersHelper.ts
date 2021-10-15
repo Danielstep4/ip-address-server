@@ -1,44 +1,82 @@
 import { User } from "../db/users";
+import { generateToken } from "./tokenHelper";
 
-/** Getting all the users from json file. */
-export const getUsers = async () => {
+/** Getting a specific user by ip address from db. */
+export const getUser = async (ip: string) => {
   try {
-    const users = await User.find();
+    const users = await User.findOne({ ip }).exec();
     return users;
   } catch (e) {
     console.error("User DB Fail ", e);
   }
 };
-/** Setting new user in the json file. */
-export const setUser = async (ip: string) => {
-  const newUser = new User({
-    ip,
-  });
+/**Getting user token - can return undefined */
+export const getUserToken = async (ip: string) => {
   try {
-    const user = await User.findOne({ ip }).exec();
-    if (user) return;
-    await newUser.save();
+    const user = await getUser(ip);
+    if (user && user.token) {
+      return user.token;
+    }
   } catch (e) {
-    console.error(e);
+    console.error("DB Error: ", e);
   }
 };
-/** Incrementing request in json file. */
+/** Setting new user in db. if user exists return undefined else returns new token. */
+export const setUser = async (ip: string) => {
+  try {
+    const user = await getUser(ip);
+    if (user) return;
+    const token = generateToken(ip);
+    const newUser = new User({
+      ip,
+      token,
+    });
+    await newUser.save();
+    console.log("New user created: ", newUser);
+    return token;
+  } catch (e) {
+    console.error("DB Error: ", e);
+  }
+};
+/** Incrementing request in user doc. */
 export const incrementUser = async (ip: string): Promise<number> => {
   try {
-    const user = await User.findOne({ ip }).exec();
-    user.requests++;
-    await user.save();
-    return user.requests;
+    const user = await getUser(ip);
+    if (user) {
+      user.requests++;
+      await user.save();
+      return user.requests;
+    } else return Promise.resolve(0);
   } catch (e) {
-    console.log(e);
+    console.error("DB Error: ", e);
   }
 };
-/** Removing user from json file. */
+/** Setting new token to user if user exists and returning token
+ * if user do not exists creating new and returning token
+ */
+export const setUserNewToken = async (ip: string) => {
+  try {
+    const user = await getUser(ip);
+    if (user) {
+      const token = generateToken(ip);
+      user.token = token;
+      await user.save();
+      console.log("Added new Token to ", user);
+      return token;
+    } else {
+      const token = await setUser(ip);
+      return token;
+    }
+  } catch (e) {
+    console.error("DB Error: ", e);
+  }
+};
+/** Removing user from db. */
 export const removeUser = async (ip: string) => {
   try {
-    await User.findByIdAndDelete({ ip }).exec();
-    console.log(ip, " deleted.");
+    const deltedUser = await User.findOneAndDelete({ ip }).exec();
+    console.log(deltedUser, " deleted.");
   } catch (e) {
-    console.log(e);
+    console.error("DB Error: ", e);
   }
 };
