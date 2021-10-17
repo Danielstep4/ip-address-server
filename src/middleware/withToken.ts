@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import express from "express";
 import dotenv from "dotenv";
-import { removeUser, setUserNewToken } from "../utils/usersHelper";
+import { setUserNewToken } from "../utils/usersHelper";
 import { parseIp } from "../utils/ipsHelper";
 
 dotenv.config();

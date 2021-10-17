@@ -10,7 +10,6 @@ import { withUserIp } from "./middleware/withUserIp";
 import {
   getUserToken,
   incrementUser,
-  removeUser,
   setUserNewToken,
 } from "./utils/usersHelper";
 import { cacheIp, extractCachedIp } from "./utils/ipsHelper";
@@ -32,7 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 // getToken Route
 app.get("/getToken", withUserIp, async (req, res) => {
   try {
-    const { ip, token } = req.body;
+    const { ip, token } = req.body as { ip: string; token?: string };
     if (!token) {
       const cachedToken = await getUserToken(ip);
       if (cachedToken) return res.status(200).json({ token: cachedToken, ip });

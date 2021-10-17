@@ -18,7 +18,9 @@ export const withUserIp = async (
   }
   try {
     const token = await setUser(ip);
-    if (token) req.body.token = token;
+    if (token) {
+      req.body.token = token;
+    }
     req.body.ip = ip;
     next();
   } catch (e) {
